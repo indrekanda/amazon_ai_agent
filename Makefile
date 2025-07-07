@@ -1,4 +1,4 @@
-active:
+activate-venv:
 	source .venv/bin/activate
 
 clean-notebook-outputs:
