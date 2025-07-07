@@ -205,3 +205,15 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Other
+info.txt
+.code-workspace
+
+# Data files - exclude actual data but keep folder structure
+data/*
+qdrant_storage/*
+
+# Keep data folder structure by adding a .gitkeep file
+!data/.gitkeep
+!qdrant_storage/.gitkeep

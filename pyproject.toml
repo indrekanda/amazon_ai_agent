@@ -1,0 +1,18 @@
+[project]
+name = "amazon-ai-agent"
+version = "0.1.0"
+description = "AI Agent for Amazon products"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "google-genai>=1.22.0",
+    "groq>=0.29.0",
+    "openai>=1.92.3",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "qdrant-client>=1.14.3",
+    "streamlit>=1.46.1",
+]
+
+# uv pip install ipykernel -U --force-reinstall
+# uv pip install nbconvert
