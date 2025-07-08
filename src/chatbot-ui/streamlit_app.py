@@ -78,5 +78,5 @@ if prompt := st.chat_input("Hello! How can I assist you today?"):
     with st.chat_message("assistant"):
         # output = run_llm(client, st.session_state.messages)
         output = rag_pipeline(prompt)
-        st.write(output)
+        st.write(output["answer"])
     st.session_state.messages.append({"role": "assistant", "content": output})
