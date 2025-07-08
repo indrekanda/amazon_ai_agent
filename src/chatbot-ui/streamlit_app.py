@@ -19,7 +19,7 @@ with st.sidebar:
         model_name = st.selectbox("Model", ["gemini-2.0-flash"])
     
     # Add other settings
-    temperature = st.slider("Temperature", min_value=0.0, max_value=2.0, value=1.0, step=0.1)
+    temperature = st.slider("Temperature", min_value=0.0, max_value=2.0, value=0.7, step=0.1)
     max_tokens = st.slider("Max Tokens", min_value=100, max_value=1000, value=500, step=100)
 
     # Save provider, model, temperature, and max_tokens to session state
