@@ -15,6 +15,7 @@ dependencies = [
     "streamlit>=1.46.1",
 ]
 
+# Will need to install after each uv sync
 # uv pip install ipykernel -U --force-reinstall
 # uv pip install nbconvert
 # uv pip install matplotlib
