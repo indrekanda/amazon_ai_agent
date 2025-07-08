@@ -8,6 +8,8 @@ class Config(BaseSettings):
     QDRANT_COLLECTION_NAME: str
     EMBEDDING_MODEL: str
     EMBEDDING_MODEL_PROVIDER: str
+    GENERATION_MODEL: str
+    GENERATION_MODEL_PROVIDER: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
