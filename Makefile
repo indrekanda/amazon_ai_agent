@@ -1,5 +1,5 @@
-activate-venv:
-	source .venv/bin/activate
+# alias act="source .venv/bin/activate"
+# alias run-tests="pytest tests"
 
 clean-notebook-outputs:
 	jupyter nbconvert --clear-output --inplace notebooks/*.ipynb
