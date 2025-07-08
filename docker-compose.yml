@@ -1,0 +1,24 @@
+services:
+  streamlit-app:
+    build:
+      context: .
+      dockerfile: Dockerfile # we build each time we run docker compose
+    ports:
+      - 8501:8501
+    env_file:
+      - .env
+    volumes:
+      - ./src/chatbot-ui:/app/src/chatbot-ui # app is defined in Dockerfile as working dir; real time sync, no rebuild is needed
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant # we won't build, but pull the latest image & run it
+    ports:
+      - 6333:6333 # api (more universal, easier to debug, and works everywhere (including browsers))
+      - 6334:6334 # grpc (is faster, more efficient, and great for internal microservices)
+    volumes:
+      - ./qdrant_storage:/qdrant/storage:z # data will persist in both local and container, even if container is stopped
+    restart: unless-stopped
+
+volumes:
+  qdrant_storage:

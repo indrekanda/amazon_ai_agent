@@ -12,3 +12,9 @@ build-docker-streamlit:
 
 run-docker-streamlit:
 	docker run -v ${PWD}/.env:/app/.env -p 8501:8501 streamlit-app:latest
+
+# -- build - build the app each time we run it
+# -d - launche and it runs as a detached process in background (no need to keep terminal open, no logs in the terminal, harder to stop)
+run-docker-compose:
+	uv sync
+	docker compose up --build
