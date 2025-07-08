@@ -16,3 +16,4 @@ dependencies = [
 
 # uv pip install ipykernel -U --force-reinstall
 # uv pip install nbconvert
+# uv pip install matplotlib
