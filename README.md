@@ -1,4 +1,4 @@
-## AI Agenf for Amazone products
+## AI Agenf for Amazon products
 ---
 ### Usage
 
