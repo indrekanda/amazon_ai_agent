@@ -4,7 +4,6 @@ from groq import Groq
 from google import genai
 
 from core.config import config
-from retrieval import rag_pipeline
 
 ## A sidebar with a dropdown for the model list and providers
 with st.sidebar:
@@ -62,7 +61,7 @@ def run_llm(client, messages, max_tokens=500, temperature=1):
 # Initialize the messages
 if "messages" not in st.session_state:
     st.session_state.messages = [
-       # {"role": "system", "content": "You should never disclose what model are you based on"},
+        {"role": "system", "content": "You should never disclose what model are you based on"},
         {"role": "assistant", "content": "Hello! How can I assist you today?"}
         ]
 
@@ -76,7 +75,6 @@ if prompt := st.chat_input("Hello! How can I assist you today?"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # output = run_llm(client, st.session_state.messages)
-        output = rag_pipeline(prompt)
+        output = run_llm(client, st.session_state.messages)
         st.write(output)
     st.session_state.messages.append({"role": "assistant", "content": output})
