@@ -4,6 +4,10 @@
 clean-notebook-outputs:
 	jupyter nbconvert --clear-output --inplace notebooks/*.ipynb
 
+# If uv sync was done
+clean-notebook-outputs1:
+	uv run jupyter nbconvert --clear-output --inplace notebooks/*.ipynb
+
 run-streamlit:
 	streamlit run src/chatbot_ui/streamlit_app.py
 
