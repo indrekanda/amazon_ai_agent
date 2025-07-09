@@ -18,6 +18,19 @@ dependencies = [
     "streamlit>=1.46.1",
 ]
 
+
+# To install only prod dependencies: uv sync
+# To install only dev dependencies: uv sync --extra dev
+
+# To add to prod dependencies: uv add jupyter nbconvert
+# To add to dev dependencies: uv add --dev jupyter nbconvert
+
+# To remove from prod dependencies: uv remove jupyter nbconvert
+# To remove from dev dependencies: uv remove --dev jupyter nbconvert
+
+[project.optional-dependencies]
+dev = ["jupyter", "nbconvert", "ipykernel", "matplotlib"]
+
 # Will need to install after each uv sync
 # uv pip install ipykernel -U --force-reinstall
 # pip install --upgrade jupyter
