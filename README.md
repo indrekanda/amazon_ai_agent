@@ -4,10 +4,10 @@
 
 To run locally:
 1. Clone: `git clone https://github.com/indrekanda/amazon_ai_agent.git`
-2. Create venv: `uv sync`
-3. Activate: `.venv\Scripts\activate`
-4. Copy .env to root dir
-5. Run app: `make run-streamlit`
+2. Create venv: `uv sync` or `uv sync --extra dev`
+3. Activate: `source .venv/bin/activate`
+4. Copy .env to the root dir
+5. Run the app: `make run-streamlit`
 
 
 
