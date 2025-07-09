@@ -10,6 +10,10 @@ class Config(BaseSettings):
     EMBEDDING_MODEL_PROVIDER: str
     GENERATION_MODEL: str
     GENERATION_MODEL_PROVIDER: str
+    LANGSMITH_TRACING: bool
+    LANGSMITH_ENDPOINT: str
+    LANGSMITH_API_KEY: str
+    LANGSMITH_PROJECT: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
