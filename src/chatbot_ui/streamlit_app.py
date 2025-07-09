@@ -2,9 +2,16 @@ import streamlit as st
 from openai import OpenAI
 from groq import Groq
 from google import genai
+from qdrant_client import QdrantClient
 
 from core.config import config
 from retrieval import rag_pipeline
+
+
+# It is not localhost, because we are running the app from docker compose, 
+# If we are running locally, we can use localhost:6333
+qdrant_client = QdrantClient(url=f"http://{config.QDRANT_URL}:6333")
+
 
 ## A sidebar with a dropdown for the model list and providers
 with st.sidebar:
@@ -77,6 +84,6 @@ if prompt := st.chat_input("Hello! How can I assist you today?"):
 
     with st.chat_message("assistant"):
         # output = run_llm(client, st.session_state.messages)
-        output = rag_pipeline(prompt)
+        output = rag_pipeline(prompt, qdrant_client)
         st.write(output["answer"])
     st.session_state.messages.append({"role": "assistant", "content": output})

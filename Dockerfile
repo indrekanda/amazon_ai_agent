@@ -8,8 +8,8 @@ ENV PYTHONOPTIMIZE=1
 ENV UV_LINK_MODE=copy
 
 # Set Python path to include the src directory for imports
-#ENV PYTHONPATH="/app/src:$PYTHONPATH"
-ENV PYTHONPATH="/app/src"
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
+# ENV PYTHONPATH="/app/src"
 
 # Copy only dependency files first for better layer caching
 COPY pyproject.toml uv.lock ./
@@ -19,10 +19,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen
 
 # Copy application code
-COPY src/chatbot-ui ./src/chatbot-ui/
+COPY src/chatbot_ui ./src/chatbot_ui/
 
 # Pre-compile Python files to bytecode
-RUN python -m compileall ./src/chatbot-ui
+RUN python -m compileall ./src/chatbot_ui
 
 # Set PATH to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
@@ -43,4 +43,4 @@ USER app
 EXPOSE 8501
 
 # Command to run the application
-CMD ["streamlit", "run", "src/chatbot-ui/streamlit_app.py", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "src/chatbot_ui/streamlit_app.py", "--server.address=0.0.0.0"]

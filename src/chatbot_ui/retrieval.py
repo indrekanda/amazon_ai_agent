@@ -2,11 +2,13 @@ import openai
 from qdrant_client import QdrantClient
 from langsmith import traceable, get_current_run_tree
 
-from core.config import config
+from chatbot_ui.core.config import config
 
 # It is not localhost, because we are running the app from docker compose, 
 # If we are running locally, we can use localhost:6333
-qdrant_client = QdrantClient(url=f"http://{config.QDRANT_URL}:6333")
+#qdrant_client = QdrantClient(url=f"http://{config.QDRANT_URL}:6333")
+
+# Tracing / Evals: https://smith.langchain.com/
 
 
 # Super naive RAG pipeline
@@ -40,7 +42,7 @@ def get_embedding(text, model=config.EMBEDDING_MODEL):
     name="retrieve_top_n",
     run_type="retriever",
 )
-def retrieve_context(query, top_k=5):
+def retrieve_context(query, qdrant_client, top_k=5):
     query_embedding = get_embedding(query)
     results = qdrant_client.query_points(
         collection_name=config.QDRANT_COLLECTION_NAME,
@@ -129,8 +131,8 @@ def generate_answer(prompt):
 @traceable(
     name="rag_pipeline",
 )
-def rag_pipeline(question, top_k=5):
-    retrieved_context = retrieve_context(question, top_k)
+def rag_pipeline(question, qdrant_client, top_k=5):
+    retrieved_context = retrieve_context(question, qdrant_client, top_k)
     prompt = build_prompt(retrieved_context, question)
     answer = generate_answer(prompt)
     

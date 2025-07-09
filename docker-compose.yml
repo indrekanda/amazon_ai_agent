@@ -8,7 +8,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./src/chatbot-ui:/app/src/chatbot-ui # app is defined in Dockerfile as working dir; real time sync, no rebuild is needed
+      - ./src/chatbot_ui:/app/src/chatbot_ui # app is defined in Dockerfile as working dir; real time sync, no rebuild is needed
     restart: unless-stopped
 
   qdrant:

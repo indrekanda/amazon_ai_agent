@@ -7,15 +7,19 @@ requires-python = ">=3.12"
 dependencies = [
     "google-genai>=1.22.0",
     "groq>=0.29.0",
+    "langchain-openai>=0.3.27",
     "langsmith>=0.4.4",
     "openai>=1.92.3",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.10.1",
     "qdrant-client>=1.14.3",
+    "ragas>=0.2.15",
+    "rapidfuzz>=3.13.0",
     "streamlit>=1.46.1",
 ]
 
 # Will need to install after each uv sync
 # uv pip install ipykernel -U --force-reinstall
+# pip install --upgrade jupyter
 # uv pip install nbconvert
 # uv pip install matplotlib
