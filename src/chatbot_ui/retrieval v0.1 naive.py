@@ -1,6 +1,5 @@
 import openai
 from qdrant_client import QdrantClient
-from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
 from langsmith import traceable, get_current_run_tree
 
 from chatbot_ui.core.config import config
@@ -39,26 +38,16 @@ def get_embedding(text, model=config.EMBEDDING_MODEL):
 
 
 # 2. Ask a query and retrieve the context (include query embedding)
-# Hybrid search: vector similarity search + exact keyword search
 @traceable(
     name="retrieve_top_n",
     run_type="retriever",
 )
 def retrieve_context(query, qdrant_client, top_k=5):
     query_embedding = get_embedding(query)
-    
     results = qdrant_client.query_points(
         collection_name=config.QDRANT_COLLECTION_NAME,
-        prefetch = [ # will return no more than 20 items from each prefetch (40 in total)
-            Prefetch(
-                query = query_embedding,
-                limit = 20), # vector similarity search (dense)
-            Prefetch(
-                filter = Filter(must = [FieldCondition(key = "text",match = MatchText(text=query))]), # exact keyword search (sparse)
-                limit = 20), 
-        ],
-        query=FusionQuery(fusion='rrf'),  
-        limit = top_k, 
+        query = query_embedding,
+        limit=top_k
     )
     
     # Add metadata to the run for debugging
