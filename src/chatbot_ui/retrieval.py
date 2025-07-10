@@ -2,6 +2,9 @@ import openai
 from qdrant_client import QdrantClient
 from qdrant_client.models import Prefetch, Filter, FieldCondition, MatchText, FusionQuery
 from langsmith import traceable, get_current_run_tree
+import instructor
+from pydantic import BaseModel
+from openai import OpenAI
 
 from chatbot_ui.core.config import config
 
@@ -115,28 +118,38 @@ Question:
 
 
 # 5. Answer the question
+
+# Create pydantic model for output
+class RAGGenerationResponse(BaseModel):
+    answer: str
+    
+# Run llms call using instructor
 @traceable(
     name="generate_answer",
     run_type="llm",
     metadata={"ls_provider": config.GENERATION_MODEL_PROVIDER, "ls_model_name": config.GENERATION_MODEL},
 )
 def generate_answer(prompt):
-    response = openai.chat.completions.create(
-        model="gpt-4.1", # Good and cheap
+    
+    client = instructor.from_openai(OpenAI())
+    
+    response, raw_response = client.chat.completions.create_with_completion(
+        model = "gpt-4.1",
+        response_model = RAGGenerationResponse,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.5,
+        temperature = 0.5,
     )
     
     # Add custom metadata for tracing
     current_run = get_current_run_tree()
     if current_run:
         current_run.metadata["usage_metadata"] = {
-            "input_tokens": response.usage.prompt_tokens, # is not tracked by default, we add it manually
-            "output_tokens": response.usage.completion_tokens,
-            "total_tokens": response.usage.total_tokens,  
+            "input_tokens": raw_response.usage.prompt_tokens, # is not tracked by default, we add it manually
+            "output_tokens": raw_response.usage.completion_tokens,
+            "total_tokens": raw_response.usage.total_tokens,  
         }
         
-    return response.choices[0].message.content
+    return response # returns pydantic model
 
 # Nested functions become spans of the parent function
 @traceable(
@@ -145,7 +158,7 @@ def generate_answer(prompt):
 def rag_pipeline(question, qdrant_client, top_k=5):
     retrieved_context = retrieve_context(question, qdrant_client, top_k)
     prompt = build_prompt(retrieved_context, question)
-    answer = generate_answer(prompt)
+    answer = generate_answer(prompt) # returns pydantic model (extraction of answer is done in streamlit app)
     
     # Collect all the results in a single dictionary for easier validation
     # But streamlit app will need to unpack it (need to modify the app)
