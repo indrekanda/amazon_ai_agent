@@ -5,6 +5,8 @@ from langsmith import traceable, get_current_run_tree
 import instructor
 from pydantic import BaseModel
 from openai import OpenAI
+from typing import List
+import json
 
 from api.core.config import config
 
@@ -84,12 +86,39 @@ def retrieve_context(query, qdrant_client, top_k=5):
 def process_context(context):
     """Will return all the retrieved chunks in a formatted string"""
     formatted_context = ""
-    for chunk in context["retrieved_context"]:
-        formatted_context += f"- {chunk}\n"
+    for id, chunk in zip(context["retrieved_context_ids"],context["retrieved_context"]):
+        formatted_context += f"- {id}: {chunk}\n"
     return formatted_context
 
 
 # 4. Build the prompt
+
+OUTPUT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "answer": {
+            "type": "string",
+            "description": "The answer to the question based on the provided context.",
+        },
+        "retrieved_context_ids": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "The index of the chunk that was used to answer the question.",
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Short description of the item based on the context together with the id.",
+                    },
+                },
+            },
+        },
+    },
+}
+
 @traceable(
     name="render_prompt",
     run_type="prompt",
@@ -101,9 +130,23 @@ def build_prompt(context, question):
     prompt = f"""
 You are a shopping assistant that can answer questions about the products in stock.
 You will be given a question and a list of context.
+
 Instructions:
 - You need to answer the question based on the provided context only.
 - In your answer never use word "context", istead refer to it as "available products"
+- As an output, you need to provide:
+
+* The answer to the question based on the provided context
+* The list of the indexes of the chunks that were used to answer the question. Only return return the ones that are used in the answer.
+* A short description of the item based on the context.
+
+- The answer to the question should contain detailed information about the products and returned with detailed specifications in bullet points.
+- The short description should have the name of the item.
+
+<OUTPUT_SCHEMA>
+{json.dumps(OUTPUT_SCHEMA, indent=2)}
+</OUTPUT_SCHEMA>
+
 Context:
 {processed_context}
 Question:
@@ -113,10 +156,17 @@ Question:
 
 
 # 5. Answer the question
+# Create pydantic model for output
+class RAGUsedContext(BaseModel):
+    id: int
+    description: str
+
 
 # Create pydantic model for output
 class RAGGenerationResponse(BaseModel):
     answer: str
+    retrieved_context_ids: List[RAGUsedContext]
+    
     
 # Run llms call using instructor
 @traceable(
@@ -174,4 +224,22 @@ def rag_pipeline_wrapper(question, top_k=5):
     
     result = rag_pipeline(question, qdrant_client, top_k)
     
-    return result["answer"].answer # following the pydantic model
+    image_url_list = []
+    for id in result['answer'].retrieved_context_ids:
+        payload = qdrant_client.retrieve(
+            collection_name=config.QDRANT_COLLECTION_NAME,
+            ids=[id.id],
+        )[0].payload
+        image_url = payload.get('first_large_image')
+        price = payload.get('price')
+        if image_url:
+            image_url_list.append({
+                "image_url": image_url,
+                "price": price,
+                "description": id.description,
+            })  
+    
+    return  {
+        "answer": result["answer"].answer,
+        "retrieved_images": image_url_list,
+    }

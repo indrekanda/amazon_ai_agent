@@ -14,8 +14,21 @@ class Config(BaseSettings):
     LANGSMITH_ENDPOINT: str
     LANGSMITH_API_KEY: str
     LANGSMITH_PROJECT: str
-    API_URL: str = "http://api:8000" # "api" is the service name in docker compose
+   # API_URL: str = "http://api:8000" # "api" is the service name in docker compose; moved to Settings class
 
     model_config = SettingsConfigDict(env_file=".env")
 
+
+class Settings(BaseSettings):
+    """Application settings loaded from environment variables or .env file."""
+    API_URL: str = "http://api:8000"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore"
+    )
+    
+    
+
 config = Config()
+settings = Settings()
