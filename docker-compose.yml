@@ -2,7 +2,7 @@ services:
   streamlit-app:
     build:
       context: .
-      dockerfile: Dockerfile # we build each time we run docker compose
+      dockerfile: Dockerfile.streamlit # we build each time we run docker compose
     ports:
       - 8501:8501
     env_file:
@@ -20,5 +20,14 @@ services:
       - ./qdrant_storage:/qdrant/storage:z # data will persist in both local and container, even if container is stopped
     restart: unless-stopped
 
-volumes:
-  qdrant_storage:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    volumes:
+      - ./src/api:/app/src/api
+    restart: unless-stopped
