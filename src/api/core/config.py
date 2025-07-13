@@ -14,6 +14,7 @@ class Config(BaseSettings):
     LANGSMITH_ENDPOINT: str
     LANGSMITH_API_KEY: str
     LANGSMITH_PROJECT: str
+    RAG_PROMPT_TEMPLATE_PATH: str = "src/api/rag/prompts/rag_generation.yaml"
 
     model_config = SettingsConfigDict(env_file=".env")
 

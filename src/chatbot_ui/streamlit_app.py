@@ -4,7 +4,7 @@ import requests
 from src.chatbot_ui.core.config import settings
 
 st.set_page_config(
-    page_title="Ecommerce Assistant",
+    page_title="Amazon AI Assistant",
     layout="wide",
     initial_sidebar_state="expanded",
 )

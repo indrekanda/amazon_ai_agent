@@ -8,6 +8,7 @@ from openai import OpenAI
 from typing import List
 import json
 
+from api.rag.utils.utils import prompt_template_config, prompt_template_regstry
 from api.core.config import config
 
 #qdrant_client = QdrantClient(url=f"http://{config.QDRANT_URL}:6333")
@@ -127,31 +128,15 @@ def build_prompt(context, question):
     
     processed_context = process_context(context)
     
-    prompt = f"""
-You are a shopping assistant that can answer questions about the products in stock.
-You will be given a question and a list of context.
-
-Instructions:
-- You need to answer the question based on the provided context only.
-- In your answer never use word "context", istead refer to it as "available products"
-- As an output, you need to provide:
-
-* The answer to the question based on the provided context
-* The list of the indexes of the chunks that were used to answer the question. Only return return the ones that are used in the answer.
-* A short description of the item based on the context.
-
-- The answer to the question should contain detailed information about the products and returned with detailed specifications in bullet points.
-- The short description should have the name of the item.
-
-<OUTPUT_SCHEMA>
-{json.dumps(OUTPUT_SCHEMA, indent=2)}
-</OUTPUT_SCHEMA>
-
-Context:
-{processed_context}
-Question:
-{question}
-"""
+    # prompt_template = prompt_template_config(config.RAG_PROMPT_TEMPLATE_PATH, "rag_generation") # yaml file path and prompt template name
+    prompt_template = prompt_template_regstry("rag-prompt")
+    
+    prompt = prompt_template.render(
+        processed_context=processed_context,
+        question=question,
+        output_json_schema=json.dumps(OUTPUT_SCHEMA, indent=2),
+    )
+    
     return prompt
 
 
