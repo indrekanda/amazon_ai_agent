@@ -164,7 +164,8 @@ def generate_answer(prompt):
     client = instructor.from_openai(OpenAI())
     
     response, raw_response = client.chat.completions.create_with_completion(
-        model = "gpt-4.1",
+        #model = "gpt-4.1",
+        model = "gpt-4.1-mini",
         response_model = RAGGenerationResponse,
         messages=[{"role": "user", "content": prompt}],
         temperature = 0.5,
