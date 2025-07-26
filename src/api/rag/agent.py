@@ -67,7 +67,7 @@ def agent_node(state) -> dict:
         }
 
     # If there are tool calls, add them to the message
-    if response.tool_calls:
+    if response.tool_calls and not response.final_answer:
         tool_calls = []
         for i, tc in enumerate(response.tool_calls):
             tool_calls.append({

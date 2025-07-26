@@ -213,7 +213,9 @@ info.txt
 # Data files - exclude actual data but keep folder structure
 data/*
 qdrant_storage/*
+postgres_storage/*
 
 # Keep data folder structure by adding a .gitkeep file
 !data/.gitkeep
 !qdrant_storage/.gitkeep
+!postgres_storage/.gitkeep

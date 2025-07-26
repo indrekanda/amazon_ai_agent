@@ -15,11 +15,11 @@ rag_router = APIRouter()
 @rag_router.post("/rag")
 async def rag(
     request: Request, # is it RAGRequest from pydantic model or Request from FastAPI
-    payload: RAGRequest
+    payload: RAGRequest # NEW: now it has thread_id
     ) -> RAGResponse: 
     
     #result = rag_pipeline_wrapper(payload.query)
-    result = run_agent_wrapper(payload.query)
+    result = run_agent_wrapper(payload.query, payload.thread_id)
     
     used_image_urls = [RAGUsedImage(image_url=image["image_url"], price=image["price"], description=image["description"]) for image in result["retrieved_images"]]
     

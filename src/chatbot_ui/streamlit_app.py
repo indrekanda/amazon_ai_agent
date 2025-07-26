@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import uuid
 
 from src.chatbot_ui.core.config import settings
 
@@ -8,6 +9,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# NEW, updates the state to include the session id
+def get_session_id():
+    if 'session_id' not in st.session_state:
+        st.session_state.session_id = str(uuid.uuid4())
+    return st.session_state.session_id
+
+# Updates after each new session - restart of the chat
+session_id = get_session_id()
 
 
 def api_call(method, url, **kwargs):
@@ -92,7 +102,8 @@ if prompt := st.chat_input("Hello! How can I assist you today?"):
         st.markdown(prompt)
     
     with st.spinner("Thinking..."):
-        status, output = api_call("post", f"{settings.API_URL}/rag", json={"query": prompt})
+        # NEW, add the session id to the request
+        status, output = api_call("post", f"{settings.API_URL}/rag", json={"query": prompt, "thread_id": session_id})
         # Update retrieved items
         st.session_state.retrieved_items = output.get("used_image_urls", [])
         
