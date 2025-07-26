@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional, Annotated
 from operator import add
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode
+from langgraph.checkpoint.postgres import PostgresSaver
 from qdrant_client import QdrantClient
 
 from api.core.config import config
@@ -21,7 +22,10 @@ class State(BaseModel):
     final_answer: bool = Field(default=False)
     available_tools: List[Dict[str, Any]] = []
     tool_calls: Optional[List[ToolCall]] = Field(default_factory=list)
-    retrieved_context_ids: Annotated[List[RAGUsedContext], add] = []
+    # NEW: as we implement multi-turn, we need to store the context ids, we dont wnat to show all 
+    # history of suggestions in the streamlit sidebasr, thus we remove the add
+    retrieved_context_ids: List[RAGUsedContext] = [] 
+    #retrieved_context_ids: Annotated[List[RAGUsedContext], add] = []
 
 # Tool router: 
 #   - if there are tool call return "tools"
@@ -62,28 +66,38 @@ workflow.add_conditional_edges(
 )
 workflow.add_edge("tool_node", "agent_node")
 
-graph = workflow.compile()
-
 
 # Run the agent, returns a dict with all keys defined in the State class
 # Replacement of rag_pipeline
-def run_agent(question: str):
+def run_agent(question: str, thread_id: str):
     """Run the agent"""
+    
     initial_state = {
         "messages": [{"role": "user", "content": question}],
+        "iteration": 0, # NEW, reset the iteration counter (for eahc query)
         "available_tools": tool_descriptions
     }
-    result = graph.invoke(initial_state)
+    
+    # NEW, add a thread id to the graph config
+    # NEW: Thred id need tobe dynamic and come from fornt end
+    graph_config = {"configurable": {"thread_id": thread_id}}
+    
+    # NEW, Context manager to save the state of the graph to the database
+    # Change localhost:5433 to postgres:5432 to connect to the database inside the container
+    with PostgresSaver.from_conn_string("postgresql://langgraph_user:langgraph_password@postgres:5432/langgraph_db") as checkpointer:
+        graph = workflow.compile(checkpointer=checkpointer)
+        result = graph.invoke(initial_state, config=graph_config)
     return result
 
 
 # Replacement of rag_pipeline_wrapper to get the answer and extract additional information
-def run_agent_wrapper(question: str):
+# NEW, add thread_id to inputs (endpoint takes it as an argument; we generate it in the streamlit app)
+def run_agent_wrapper(question: str, thread_id: str):
     """Run the agent"""
     
     qdrant_client = QdrantClient(url=f"http://{config.QDRANT_URL}:6333")
 
-    result = run_agent(question)
+    result = run_agent(question, thread_id) # NEW, add thread_id to inputs
     
     image_url_list = []
     for id in result.get("retrieved_context_ids"):
