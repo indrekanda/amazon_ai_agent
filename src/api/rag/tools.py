@@ -73,16 +73,19 @@ def retrieve_context(query, top_k=5):
 
     retrieved_context_ids = []
     retrieved_context = []
+    retrieved_prices = [] # NEW: to add to conext
     similarity_scores = []
 
     for result in results.points:
         retrieved_context_ids.append(result.id)
         retrieved_context.append(result.payload['text'])
+        retrieved_prices.append(result.payload.get('price', 'N/A'))  #NEW: to add to conext
         similarity_scores.append(result.score)
 
     return {
         "retrieved_context_ids": retrieved_context_ids,
         "retrieved_context": retrieved_context,
+        "retrieved_prices": retrieved_prices, # NEW: to add to conext
         "similarity_scores": similarity_scores
     }
 
@@ -94,9 +97,9 @@ def retrieve_context(query, top_k=5):
 def process_context(context):
 
     formatted_context = ""
-
-    for id, chunk in zip(context["retrieved_context_ids"], context["retrieved_context"]):
-        formatted_context += f"- {id}: {chunk}\n"
+    # MODIFIED: to add price to the context
+    for id, chunk, price in zip(context["retrieved_context_ids"], context["retrieved_context"], context["retrieved_prices"]):
+        formatted_context += f"- {id}, price: {price}, {chunk}\n"
 
     return formatted_context
 
