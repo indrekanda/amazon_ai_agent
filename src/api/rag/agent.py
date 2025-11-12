@@ -29,6 +29,7 @@ class AgentResponse(BaseModel):
 
 
 
+
 # Define the agent (cpoy agent node from notebook)
 
 @traceable(
@@ -65,6 +66,8 @@ def agent_node(state) -> dict:
             "output_tokens": raw_response.usage.completion_tokens,
             "total_tokens": raw_response.usage.total_tokens,  
         }
+        trace_id = str(getattr(current_run, "trace_id", current_run.id))
+
 
     # If there are tool calls, add them to the message
     if response.tool_calls and not response.final_answer:
@@ -91,7 +94,8 @@ def agent_node(state) -> dict:
         "iteration": state.iteration + 1,
         "answer": response.answer,
         "final_answer": response.final_answer,
-        "retrieved_context_ids": response.retrieved_context_ids
+        "retrieved_context_ids": response.retrieved_context_ids,
+        "trace_id": trace_id
     }
 
 

@@ -28,6 +28,7 @@ class State(BaseModel):
     # history of suggestions in the streamlit sidebasr, thus we remove the add
     retrieved_context_ids: List[RAGUsedContext] = [] 
     #retrieved_context_ids: Annotated[List[RAGUsedContext], add] = []
+    trace_id: str = ""	
 
 # Tool router: 
 #   - if there are tool call return "tools"

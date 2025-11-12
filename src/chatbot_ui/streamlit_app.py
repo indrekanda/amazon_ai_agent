@@ -1,8 +1,12 @@
 import streamlit as st
 import requests
 import uuid
-
+import logging
 from src.chatbot_ui.core.config import settings
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 st.set_page_config(
     page_title="Amazon AI Assistant",
@@ -54,6 +58,32 @@ def api_call(method, url, **kwargs):
         return False, {"message": str(e)}
 
 
+def submit_feedback(feedback_type=None, feedback_text=""):
+    """Submit feedback to the API endpoint"""
+
+    def _feedback_score(feedback_type):
+        if feedback_type == "positive":
+            return 1
+        elif feedback_type == "negative":
+            return 0
+        else:
+            return None 
+    
+    feedback_data = {
+        "feedback_score": _feedback_score(feedback_type),
+        "feedback_text": feedback_text,
+        "trace_id": st.session_state.trace_id,
+        "thread_id": session_id,
+        "feedback_source_type": "api"
+    }
+
+    logger.info(f"Feedback data: {feedback_data}")
+    
+    # Send feedback to the API endpoint
+    status, response = api_call("post", f"{settings.API_URL}/submit_feedback", json=feedback_data)
+    return status, response
+
+
 if "retrieved_items" not in st.session_state:
     st.session_state.retrieved_items = []
 
@@ -68,6 +98,20 @@ if "sidebar_key" not in st.session_state:
 
 if "sidebar_placeholder" not in st.session_state:
     st.session_state.sidebar_placeholder = None
+
+# Initialize feedback states (simplified)
+if "latest_feedback" not in st.session_state:
+    st.session_state.latest_feedback = None
+
+if "show_feedback_box" not in st.session_state:
+    st.session_state.show_feedback_box = False
+
+if "feedback_submission_status" not in st.session_state:
+    st.session_state.feedback_submission_status = None
+
+if "trace_id" not in st.session_state:
+    st.session_state.trace_id = None
+    
 
 # Sidebar - Suggestions
 with st.sidebar:
@@ -92,9 +136,87 @@ with st.sidebar:
 # Main content - Chat interface
 
 # Display all messages
-for message in st.session_state.messages:
+# for message in st.session_state.messages:
+#     with st.chat_message(message["role"]):
+#         st.markdown(message["content"])
+
+# Display all messages
+for idx, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+        
+        # Add feedback buttons only for the latest assistant message (excluding the initial greeting)
+        is_latest_assistant = (
+            message["role"] == "assistant" and 
+            idx == len(st.session_state.messages) - 1 and 
+            idx > 0
+        )
+        
+        if is_latest_assistant:
+            # Use Streamlit's built-in feedback component
+            feedback_result = st.feedback("thumbs", key="feedback_latest")
+            
+            # Handle feedback selection
+            if feedback_result is not None:
+                feedback_type = "positive" if feedback_result == 1 else "negative"
+                
+                # Only submit if this is a new/different feedback
+                if st.session_state.latest_feedback != feedback_type:
+                    with st.spinner("Submitting feedback..."):
+                        status, response = submit_feedback(feedback_type=feedback_type)
+                        if status:
+                            st.session_state.latest_feedback = feedback_type
+                            st.session_state.feedback_submission_status = "success"
+                            st.session_state.show_feedback_box = (feedback_type == "negative")
+                        else:
+                            st.session_state.feedback_submission_status = "error"
+                            st.error("Failed to submit feedback. Please try again.")
+                    st.rerun()
+            
+            # Show feedback status message
+            if st.session_state.latest_feedback and st.session_state.feedback_submission_status == "success":
+                if st.session_state.latest_feedback == "positive":
+                    st.success("✅ Thank you for your positive feedback!")
+                elif st.session_state.latest_feedback == "negative" and not st.session_state.show_feedback_box:
+                    st.success("✅ Thank you for your feedback!")
+            elif st.session_state.feedback_submission_status == "error":
+                st.error("❌ Failed to submit feedback. Please try again.")
+            
+            # Show feedback text box if thumbs down was pressed
+            if st.session_state.show_feedback_box:
+                st.markdown("**Want to tell us more? (Optional)**")
+                st.caption("Your negative feedback has already been recorded. You can optionally provide additional details below.")
+                
+                # Text area for detailed feedback
+                feedback_text = st.text_area(
+                    "Additional feedback (optional)",
+                    key="feedback_text_latest",
+                    placeholder="Please describe what was wrong with this response...",
+                    height=100
+                )
+                
+                # Send additional feedback button
+                col_send, col_spacer, col_close = st.columns([3, 5, 2])
+                with col_send:
+                    if st.button("Send Additional Details", key="send_additional_feedback"):
+                        if feedback_text.strip():  # Only send if there's actual text
+                            with st.spinner("Submitting additional feedback..."):
+                                status, response = submit_feedback(feedback_text=feedback_text)
+                                if status:
+                                    st.success("✅ Thank you! Your additional feedback has been recorded.")
+                                    st.session_state.show_feedback_box = False
+                                else:
+                                    st.error("❌ Failed to submit additional feedback. Please try again.")
+                        else:
+                            st.warning("Please enter some feedback text before submitting.")
+                        st.rerun()
+                
+                with col_close:
+                    if st.button("Close", key="close_feedback_latest"):
+                        st.session_state.show_feedback_box = False
+                        st.rerun()
+
+
 
 # Chat input
 if prompt := st.chat_input("Hello! How can I assist you today?"):
@@ -107,6 +229,7 @@ if prompt := st.chat_input("Hello! How can I assist you today?"):
         status, output = api_call("post", f"{settings.API_URL}/rag", json={"query": prompt, "thread_id": session_id})
         # Update retrieved items
         st.session_state.retrieved_items = output.get("used_image_urls", [])
+        st.session_state.trace_id = output.get("trace_id", None)
         
         # Clear the sidebar placeholder to force refresh
         if st.session_state.sidebar_placeholder is not None:
