@@ -8,6 +8,7 @@ st.set_page_config(
     page_title="Amazon AI Assistant",
     layout="wide",
     initial_sidebar_state="expanded",
+    page_icon="🤖"
 )
 
 # NEW, updates the state to include the session id

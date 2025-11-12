@@ -7,9 +7,15 @@ To run locally:
 2. Create venv: `uv sync` or `uv sync --extra dev`
 3. Activate: `source .venv/bin/activate`
 4. Copy .env to the root dir
-5. Run the app: `make run-streamlit`
+5. Run the app: `make run-docker-compose` (make sure Docker is up)
 
 
+---
+### UI
+Streamlit: http://localhost:8501/
+LangSmith: https://smith.langchain.com/
+Qdrant: http://localhost:6333/dashboard
+FastAPI: http://localhost:8000/docs
 
 ---
 ### Acknowledgements and Citations

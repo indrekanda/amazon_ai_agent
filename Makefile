@@ -8,8 +8,8 @@ clean-notebook-outputs:
 # clean-notebook-outputs1:
 # 	uv run jupyter nbconvert --clear-output --inplace notebooks/*.ipynb
 
-run-streamlit:
-	streamlit run src/chatbot_ui/streamlit_app.py
+# run-streamlit:
+# 	streamlit run src/chatbot_ui/streamlit_app.py
 
 build-docker-streamlit:
 	docker build -t streamlit-app:latest .
@@ -18,7 +18,8 @@ run-docker-streamlit:
 	docker run -v ${PWD}/.env:/app/.env -p 8501:8501 streamlit-app:latest
 
 # -- build - build the app each time we run it
-# -d - launche and it runs as a detached process in background (no need to keep terminal open, no logs in the terminal, harder to stop)
+# -d - launches and it runs as a detached process in background (no need to keep terminal open, no logs in the terminal, harder to stop)
+# make sure Docker is running
 run-docker-compose:
 	uv sync
 	docker compose up --build
