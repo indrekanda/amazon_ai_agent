@@ -18,7 +18,7 @@ class ToolCall(BaseModel):
     arguments: dict
 
 class RAGUsedContext(BaseModel):
-    id: int
+    id: str
     description: str
 
 class AgentResponse(BaseModel):
