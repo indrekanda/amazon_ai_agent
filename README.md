@@ -12,10 +12,10 @@ To run locally:
 
 ---
 ### UI
-Streamlit: http://localhost:8501/
-LangSmith: https://smith.langchain.com/
-Qdrant: http://localhost:6333/dashboard
-FastAPI: http://localhost:8000/docs
+Streamlit: http://localhost:8501/  
+LangSmith: https://smith.langchain.com/  
+Qdrant: http://localhost:6333/dashboard  
+FastAPI: http://localhost:8000/docs  
 
 ---
 ### Acknowledgements and Citations
